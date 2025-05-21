@@ -18,12 +18,20 @@ pub fn random_sort<T: Clone>(items: &Vec<T>, seed: &mut usize) -> Vec<T> {
 }
 
 /// Draw a prize item from the given indices and mark it as "X" in the random sort items.
-pub fn draw_prize_item(idx_box: &mut Vec<usize>, random_sort_items: &mut Vec<String>) -> String {
+pub fn draw_prize_item(
+    idx_box: &mut Vec<usize>,
+    random_sort_items: &mut Vec<String>,
+    seed: Option<usize>,
+) -> String {
     // Seed the random number generator with the current time
-    let mut seed = time::SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs() as usize;
+    let mut seed = if let Some(seed) = seed {
+        seed
+    } else {
+        time::SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as usize
+    };
     // Generate a random index to select an item
     let r_idx = rng(&mut seed) % idx_box.len();
     // Get the index of the item to be drawn
@@ -80,7 +88,7 @@ mod tests {
     fn test_draw_prize_item() {
         let mut idx_box = vec![0, 1, 2];
         let mut random_sort_items = vec!["A".to_string(), "B".to_string(), "C".to_string()];
-        let drawn_item = draw_prize_item(&mut idx_box, &mut random_sort_items);
-        assert_eq!(drawn_item, "A");
+        let drawn_item = draw_prize_item(&mut idx_box, &mut random_sort_items, Some(123455));
+        assert_eq!(drawn_item, "B");
     }
 }

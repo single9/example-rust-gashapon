@@ -69,7 +69,7 @@ fn main() {
 
     loop {
         // Draw a prize item from the random sort items
-        let my_prize = draw_prize_item(&mut idx_box, &mut random_sort_items);
+        let my_prize = draw_prize_item(&mut idx_box, &mut random_sort_items, None);
 
         println!("Remaining index: {:?}", idx_box);
         println!("Remaining items: {:?}", random_sort_items);

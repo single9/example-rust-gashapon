@@ -57,84 +57,30 @@ pub fn calculate_draw_rate(prize_items: &Vec<(&str, i32)>) -> HashMap<String, f3
     draw_rate
 }
 
-// fn main() {
-//   // Define the prize items and their counts
-//   let prize_items = vec![
-//       ("S", 1),
-//       ("A", 2),
-//       ("B", 3),
-//       ("C", 5),
-//       ("D", 12),
-//       ("E", 15),
-//       ("F", 20),
-//       ("G", 22),
-//   ];
-//   // Calculate the draw rate of each item
-//   let draw_rate = calculate_draw_rate(&prize_items)
-//       .into_iter()
-//       .map(|(k, v)| (k, v * 100.0))
-//       .collect::<HashMap<String, f32>>();
-//   // Sort the draw rate by value
-//   let mut draw_rate: Vec<_> = draw_rate.into_iter().collect();
-//   draw_rate.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-//   // Count the total number of items
-//   let prize_item_count = prize_items
-//       .clone()
-//       .into_iter()
-//       .map(|item| item.1)
-//       .sum::<i32>();
-//   let prize_item_count = prize_item_count as usize;
-//   // Create a vector of items based on the prize items and their counts
-//   let items = {
-//       let mut items = Vec::new();
-//       for i in prize_items.into_iter() {
-//           let item = i.0;
-//           let mut item_count = i.1;
-//           while item_count > 0 {
-//               items.push(item.to_string());
-//               item_count -= 1;
-//           }
-//       }
-//       items
-//   };
-//   // Randomly sort the items
-//   let mut random_sort_items = {
-//       let mut seed: usize = 13245; // Use a fixed seed for reproducibility
-//       random_sort(&items, &mut seed)
-//   };
+    #[test]
+    fn test_rng() {
+        let mut seed = 12345;
+        let random_number = rng(&mut seed);
+        assert_eq!(random_number, 21468);
+    }
 
-//   println!("Original items: {:?}", items);
-//   println!("Randomly sorted items: {:?}", random_sort_items);
+    #[test]
+    fn test_random_sort() {
+        let items = vec![1, 2, 3, 4, 5];
+        let mut seed = 12345;
+        let sorted_items = random_sort(&items, &mut seed);
+        assert_eq!(sorted_items.len(), items.len());
+    }
 
-//   // Create a vector of indices for the items
-//   let idx_box = {
-//       let mut idx_box = Vec::new();
-//       for i in 0..prize_item_count {
-//           idx_box.push(i);
-//       }
-//       idx_box
-//   };
-
-//   // Randomly sort the indices of the items
-//   let mut seed: usize = 13245;
-//   let mut idx_box = random_sort(&idx_box, &mut seed);
-
-//   println!("Randomly sorted indices: {:?}", idx_box);
-
-//   loop {
-//       // Draw a prize item from the random sort items
-//       let my_prize = draw_prize_item(&mut idx_box, &mut random_sort_items);
-
-//       println!("Remaining index: {:?}", idx_box);
-//       println!("Remaining items: {:?}", random_sort_items);
-//       println!("Draw item: {:?}", my_prize);
-
-//       if idx_box.len() == 0 {
-//           println!("No more items left to draw.");
-//           break;
-//       }
-//   }
-
-//   println!("Draw rates (%): {:?}", draw_rate);
-// }
+    #[test]
+    fn test_draw_prize_item() {
+        let mut idx_box = vec![0, 1, 2];
+        let mut random_sort_items = vec!["A".to_string(), "B".to_string(), "C".to_string()];
+        let drawn_item = draw_prize_item(&mut idx_box, &mut random_sort_items);
+        assert_eq!(drawn_item, "A");
+    }
+}

@@ -16,5 +16,8 @@ doc = false
 path = "bin/gui.rs"
 
 [dependencies]
-iced = { version = "0.13.1", features = ["debug", "tokio"] }
+iced = { git = "https://github.com/iced-rs/iced", branch = "master", features = [
+  "debug",
+  "tokio",
+] }
 tokio = { version = "1.45.0", features = ["full"] }

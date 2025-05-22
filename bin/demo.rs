@@ -1,24 +1,22 @@
-use std::collections::HashMap;
-
-use test_gashapon::{calculate_draw_rate, draw_prize_item, random_sort};
+use test_gashapon::{Item, calculate_draw_rate, draw_prize_item, random_sort};
 
 fn main() {
     // Define the prize items and their counts
     let prize_items = vec![
-        ("S", 1),
-        ("A", 2),
-        ("B", 3),
-        ("C", 5),
-        ("D", 12),
-        ("E", 15),
-        ("F", 20),
-        ("G", 22),
+        Item::new("S", 1),
+        Item::new("A", 2),
+        Item::new("B", 3),
+        Item::new("C", 5),
+        Item::new("D", 12),
+        Item::new("E", 15),
+        Item::new("F", 20),
+        Item::new("G", 22),
     ];
     // Calculate the draw rate of each item
     let draw_rate = calculate_draw_rate(&prize_items)
         .into_iter()
         .map(|(k, v)| (k, v * 100.0))
-        .collect::<HashMap<String, f32>>();
+        .collect::<Vec<_>>();
     // Sort the draw rate by value
     let mut draw_rate: Vec<_> = draw_rate.into_iter().collect();
     draw_rate.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
@@ -27,15 +25,15 @@ fn main() {
     let prize_item_count = prize_items
         .clone()
         .into_iter()
-        .map(|item| item.1)
-        .sum::<i32>();
+        .map(|item| item.count)
+        .sum::<i64>();
     let prize_item_count = prize_item_count as usize;
     // Create a vector of items based on the prize items and their counts
     let items = {
         let mut items = Vec::new();
-        for i in prize_items.into_iter() {
-            let item = i.0;
-            let mut item_count = i.1;
+        for i in prize_items.clone().into_iter() {
+            let item = i.name;
+            let mut item_count = i.count;
             while item_count > 0 {
                 items.push(item.to_string());
                 item_count -= 1;
@@ -81,5 +79,11 @@ fn main() {
         }
     }
 
-    println!("Draw rates (%): {:?}", draw_rate);
+    println!(
+        "Draw rates (%): {:?}",
+        draw_rate
+            .iter()
+            .map(|(k, v)| (k.name.clone(), *v))
+            .collect::<Vec<_>>()
+    );
 }

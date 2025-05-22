@@ -1,7 +1,19 @@
-use std::{
-    collections::HashMap,
-    time::{self, UNIX_EPOCH},
-};
+use std::time::{self, UNIX_EPOCH};
+
+#[derive(Debug, Clone)]
+pub struct Item {
+    pub name: String,
+    pub count: i64,
+}
+
+impl Item {
+    pub fn new(name: &str, count: i64) -> Self {
+        Self {
+            name: name.to_string(),
+            count,
+        }
+    }
+}
 
 pub fn rng(seed: &mut usize) -> usize {
     *seed = (*seed).wrapping_mul(1103515245).wrapping_add(12345);
@@ -52,15 +64,15 @@ pub fn draw_prize_item(
 }
 
 /// Calculate the draw rate of each item based on the given prize items and their counts.
-pub fn calculate_draw_rate(prize_items: &Vec<(&str, i32)>) -> HashMap<String, f32> {
-    let mut draw_rate = HashMap::new();
+pub fn calculate_draw_rate(prize_items: &Vec<Item>) -> Vec<(&Item, f64)> {
+    let mut draw_rate = Vec::new();
     // Calculate the total count of items
-    let total_count = prize_items.iter().map(|item| item.1).sum::<i32>() as f32;
+    let total_count = prize_items.iter().map(|item| item.count).sum::<i64>() as f64;
     // Calculate the draw rate for each item
     // and store it in the HashMap
     for item in prize_items.iter() {
-        let rate = (item.1 as f32) / total_count;
-        draw_rate.insert(item.0.to_string(), rate);
+        let rate = (item.count as f64) / total_count;
+        draw_rate.push((item, rate));
     }
     draw_rate
 }

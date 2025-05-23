@@ -7,7 +7,10 @@ pub struct Item {
 }
 
 impl Item {
-    pub fn new(name: &str, count: i64) -> Self {
+    pub fn new<T>(name: T, count: i64) -> Self
+    where
+        T: ToString,
+    {
         Self {
             name: name.to_string(),
             count,

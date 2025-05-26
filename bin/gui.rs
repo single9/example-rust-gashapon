@@ -82,25 +82,26 @@ impl App {
                                 column![button("x").on_press(Message::RemovePrize(idx))]
                                     .padding(padding::right(10))
                                     .spacing(10),
-                                column![text(format!("{}: {}", item.name, item.count)).size(20),]
-                                    .spacing(10),
+                                column![
+                                    text(format!("{}: {}", item.name, item.count))
+                                        .shaping(text::Shaping::Advanced)
+                                        .size(20),
+                                ]
+                                .spacing(10),
                             ]
                             .align_y(iced::Alignment::Center)
                             .into()
                         }))
                         .spacing(10),
                         text("Pool:").size(20),
-                        row(self
-                            .prize_pool
-                            .iter()
-                            .map(|item| { text(item).size(14).into() }))
+                        row(self.prize_pool.iter().map(|item| {
+                            text(item).shaping(text::Shaping::Advanced).size(14).into()
+                        }))
                         .spacing(10),
                         text("Drawed Items:").size(20),
-                        row(self
-                            .prizes
-                            .drawed_items
-                            .iter()
-                            .map(|item| { text(item).size(14).into() }))
+                        row(self.prizes.drawed_items.iter().map(|item| {
+                            text(item).shaping(text::Shaping::Advanced).size(14).into()
+                        }))
                         .spacing(10),
                         button("Draw").on_press(Message::Draw),
                     ]
@@ -111,6 +112,7 @@ impl App {
                         text("Draw Rate:").size(20),
                         column(self.prizes.draw_rate.iter().map(|(item, rate)| {
                             text(format!("{}: {:.2}%", item.name, rate * 100.0))
+                                .shaping(text::Shaping::Advanced)
                                 .size(20)
                                 .into()
                         }))
@@ -379,5 +381,6 @@ impl App {
 pub fn main() -> iced::Result {
     iced::application(App::default, App::update, App::view)
         .title("Gashapon GUI")
+        .window_size((800.0, 800.0))
         .run()
 }

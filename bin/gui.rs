@@ -50,8 +50,23 @@ struct App {
 impl App {
     pub fn view(&self) -> Element<Message> {
         let lock_btn_text = if self.is_locked { "Unlock" } else { "Lock" };
-        let lock_btn = button(lock_btn_text).on_press(Message::LockItems);
-        let clear_btn = button("Clear").on_press(Message::Clear);
+        let lock_btn = button(lock_btn_text).on_press_maybe(if self.prizes.items.is_empty() {
+            None
+        } else {
+            Some(Message::LockItems)
+        });
+        let clear_btn = button("Clear")
+            .style(iced::widget::button::danger)
+            .on_press_maybe(if self.is_locked || self.prizes.items.is_empty() {
+                None
+            } else {
+                Some(Message::Clear)
+            });
+        let draw_btn = button("Draw").on_press_maybe(if self.is_locked {
+            Some(Message::Draw)
+        } else {
+            None
+        });
 
         scrollable(container(row![
             column![
@@ -73,15 +88,19 @@ impl App {
                 ]
                 .spacing(10)
                 .padding(padding::all(20)),
+                row![lock_btn, clear_btn,]
+                    .padding(padding::left(20))
+                    .align_y(iced::Alignment::End),
                 row![
                     column![
-                        row![text("Prizes").size(20), lock_btn, clear_btn]
-                            .align_y(iced::Alignment::Center),
+                        row![text("Prizes").size(20)].align_y(iced::Alignment::Center),
                         column(self.prizes.items.iter().enumerate().map(|(idx, item)| {
                             row![
-                                column![button("x").on_press(Message::RemovePrize(idx))]
-                                    .padding(padding::right(10))
-                                    .spacing(10),
+                                column![
+                                    button("x")
+                                        .style(button::text)
+                                        .on_press(Message::RemovePrize(idx))
+                                ],
                                 column![
                                     text(format!("{}: {}", item.name, item.count))
                                         .shaping(text::Shaping::Advanced)
@@ -92,7 +111,6 @@ impl App {
                             .align_y(iced::Alignment::Center)
                             .into()
                         }))
-                        .spacing(10),
                     ]
                     .spacing(10)
                     .padding(padding::all(20))
@@ -138,7 +156,7 @@ impl App {
                     .size(14),
                 ],]
                 .padding(padding::all(20)),
-                row![button("Draw").on_press(Message::Draw)].padding(padding::all(20)),
+                row![draw_btn].padding(padding::all(20)),
                 row![
                     column![
                         row![text("Add New Prize").size(20),],

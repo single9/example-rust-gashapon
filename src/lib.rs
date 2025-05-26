@@ -1,4 +1,4 @@
-use std::time::{self, UNIX_EPOCH};
+use web_time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug, Clone)]
 pub struct Item {
@@ -42,7 +42,7 @@ pub fn draw_prize_item(
     let mut seed = if let Some(seed) = seed {
         seed
     } else {
-        time::SystemTime::now()
+        SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs() as usize

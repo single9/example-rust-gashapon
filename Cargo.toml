@@ -18,6 +18,9 @@ path = "bin/gui.rs"
 [dependencies]
 iced = { git = "https://github.com/iced-rs/iced", branch = "master", features = [
   "debug",
-  "tokio",
+  # "tokio",
+  "web-colors",
+  # "webgl",
 ] }
-tokio = { version = "1.45.0", features = ["full"] }
+web-time = { version = "1.1.0" }
+# tokio = { version = "1.45.0", features = ["full"] }

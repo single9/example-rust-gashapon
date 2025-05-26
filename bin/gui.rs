@@ -1,4 +1,4 @@
-use std::time::{self, UNIX_EPOCH};
+use web_time::{SystemTime, UNIX_EPOCH};
 
 use iced::widget::{button, column, container, row, scrollable, text, text_editor, text_input};
 use iced::{Element, padding};
@@ -72,9 +72,11 @@ impl App {
             column![
                 row![
                     column![
-                        text("Gashapon Machine").size(50),
+                        text("Gashapon Machine")
+                            .shaping(text::Shaping::Advanced)
+                            .size(50),
                         row![
-                            text("Unit Price").size(20),
+                            text("Unit Price").shaping(text::Shaping::Advanced).size(20),
                             column![
                                 text_input("Number", &self.temp_unit_price.to_string())
                                     .width(50)
@@ -116,7 +118,7 @@ impl App {
                     .padding(padding::all(20))
                     .align_x(iced::Alignment::Start),
                     column![
-                        text("Draw Rate:").size(20),
+                        text("Draw Rate:").shaping(text::Shaping::Advanced).size(20),
                         column(self.prizes.draw_rate.iter().map(|(item, rate)| {
                             text(format!("{}: {:.2}%", item.name, rate * 100.0))
                                 .shaping(text::Shaping::Advanced)
@@ -131,7 +133,7 @@ impl App {
                 ]
                 .spacing(10),
                 row![column![
-                    row![text("Pool:").size(20),],
+                    row![text("Pool:").shaping(text::Shaping::Advanced).size(20),],
                     text(format!(
                         "{}",
                         self.prize_pool
@@ -159,7 +161,11 @@ impl App {
                 row![draw_btn].padding(padding::all(20)),
                 row![
                     column![
-                        row![text("Add New Prize").size(20),],
+                        row![
+                            text("Add New Prize")
+                                .shaping(text::Shaping::Advanced)
+                                .size(20),
+                        ],
                         row![
                             text_editor(&self.prizes.temp_prize)
                                 .placeholder("Name")
@@ -321,7 +327,7 @@ impl App {
         };
         // Randomly sort the items
         let random_sort_items = {
-            let mut seed: usize = time::SystemTime::now()
+            let mut seed: usize = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_secs() as usize;
@@ -337,7 +343,7 @@ impl App {
             for i in 0..prize_item_count {
                 idx_box.push(i);
             }
-            let mut seed: usize = time::SystemTime::now()
+            let mut seed: usize = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_secs() as usize;
@@ -351,6 +357,7 @@ impl App {
 pub fn main() -> iced::Result {
     iced::application(App::default, App::update, App::view)
         .title("Gashapon GUI")
+        .font(include_bytes!("../fonts/NotoSansTC-Regular.ttf"))
         .window_size((800.0, 800.0))
         .run()
 }

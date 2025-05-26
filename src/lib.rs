@@ -74,7 +74,7 @@ pub fn calculate_draw_rate(prize_items: &Vec<Item>) -> Vec<(&Item, f64)> {
     // Calculate the draw rate for each item
     // and store it in the HashMap
     for item in prize_items.iter() {
-        let rate = (item.count as f64) / total_count;
+        let rate = ((item.count as f64) / total_count).max(0.0);
         draw_rate.push((item, rate));
     }
     draw_rate

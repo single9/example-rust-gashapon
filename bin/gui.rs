@@ -93,17 +93,6 @@ impl App {
                             .into()
                         }))
                         .spacing(10),
-                        text("Pool:").size(20),
-                        row(self.prize_pool.iter().map(|item| {
-                            text(item).shaping(text::Shaping::Advanced).size(14).into()
-                        }))
-                        .spacing(10),
-                        text("Drawed Items:").size(20),
-                        row(self.prizes.drawed_items.iter().map(|item| {
-                            text(item).shaping(text::Shaping::Advanced).size(14).into()
-                        }))
-                        .spacing(10),
-                        button("Draw").on_press(Message::Draw),
                     ]
                     .spacing(10)
                     .padding(padding::all(20))
@@ -123,6 +112,33 @@ impl App {
                     .align_x(iced::Alignment::Start)
                 ]
                 .spacing(10),
+                row![column![
+                    row![text("Pool:").size(20),],
+                    text(format!(
+                        "{}",
+                        self.prize_pool
+                            .iter()
+                            .map(|s| s.to_string())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    ))
+                    .shaping(text::Shaping::Advanced)
+                    .size(14),
+                    row![text("Drawed Items:").size(20),],
+                    text(format!(
+                        "{}",
+                        self.prizes
+                            .drawed_items
+                            .iter()
+                            .map(|s| s.to_string())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    ))
+                    .shaping(text::Shaping::Advanced)
+                    .size(14),
+                ],]
+                .padding(padding::all(20)),
+                row![button("Draw").on_press(Message::Draw)].padding(padding::all(20)),
                 row![
                     column![
                         row![text("Add New Prize").size(20),],

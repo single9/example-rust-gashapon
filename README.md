@@ -5,3 +5,7 @@
 ### Binary
 
     cargo run --bin demo
+
+### GUI
+
+    cargo run --bin gui

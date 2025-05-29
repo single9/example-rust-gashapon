@@ -40,6 +40,8 @@ impl Default for Prizes {
 struct App {
     pub temp_unit_price: u64,
     pub unit_price: u64,
+    pub total_price_in_pool: u64,
+    pub current_cost: u64,
     pub prizes: Prizes,
     gashapon: Gashapon,
     is_locked: bool,
@@ -86,7 +88,14 @@ impl App {
                                     .width(50)
                                     .on_input(Message::UpdateUnitPrice)
                             ]
-                            .padding(padding::left(10))
+                            .padding(padding::left(10)),
+                        ],
+                        row![
+                            column![
+                                text(format!("Total Price: {}", self.total_price_in_pool)).size(20),
+                            ],
+                            column![text(format!("Current Cost: {}", self.current_cost)).size(20),]
+                                .padding(padding::left(10))
                         ]
                     ]
                     .spacing(10)
@@ -242,8 +251,6 @@ impl App {
                         self.gashapon.build();
                         self.prizes.temp_prize = text_editor::Content::new();
                         self.prizes.temp_count = text_editor::Content::new();
-                        // Update the prizes after inserting a new item
-                        self.update_prizes();
                     }
                 } else {
                     // Handle invalid count input
@@ -268,7 +275,6 @@ impl App {
                     return;
                 }
                 self.gashapon.remove_item(id);
-                self.update_prizes();
             }
             Message::IncrementItem(id) => {
                 if self.is_locked {
@@ -279,7 +285,6 @@ impl App {
 
                 let quantity = self.gashapon.items.get(&id).unwrap().quantity;
                 self.gashapon.update_item_quantity(id, quantity + 1);
-                self.update_prizes();
             }
             Message::ReduceItem(id) => {
                 if self.is_locked {
@@ -292,7 +297,6 @@ impl App {
 
                 if quantity - 1 > 0 {
                     self.gashapon.update_item_quantity(id, quantity - 1);
-                    self.update_prizes();
                 }
             }
             Message::Draw => {
@@ -303,7 +307,6 @@ impl App {
 
                 let drawed_item = self.gashapon.draw();
                 self.prizes.drawed_items.push(drawed_item.clone());
-                self.update_prizes();
             }
             Message::UpdateUnitPrice(price) => {
                 // Handle update unit price action here
@@ -322,20 +325,34 @@ impl App {
                 self.prizes.drawed_items.clear();
                 self.prizes.temp_prize = text_editor::Content::new();
                 self.prizes.temp_count = text_editor::Content::new();
-                self.prize_pool.clear();
                 self.prizes.draw_rate.clear();
                 self.is_locked = false;
                 // Reset the unit price
                 self.temp_unit_price = 0;
-                self.unit_price = 0;
                 self.gashapon.items.clear();
+                self.gashapon.prizes.randomized_items.clear();
+                self.gashapon.prizes.items.clear();
+                self.prize_pool.clear();
             }
             Message::Restore => {
                 self.gashapon.restore_items();
-                self.update_prizes();
                 self.prizes.drawed_items.clear();
             }
         }
+
+        self.update_prizes();
+        self.update_price();
+    }
+
+    fn update_price(&mut self) {
+        self.total_price_in_pool = self
+            .gashapon
+            .items
+            .iter()
+            .map(|(_, i)| i.quantity * self.unit_price)
+            .sum::<u64>();
+
+        self.current_cost = (self.prizes.drawed_items.len() as u64) * self.unit_price;
     }
 
     fn update_draw_rate(&mut self) {

@@ -241,6 +241,16 @@ impl Gashapon {
         self
     }
 
+    pub fn update_item_quantity(&mut self, id: PrizeId, quantity: u64) -> &mut Self {
+        match self.items.get_mut(&id) {
+            Some(item) => {
+                item.quantity = quantity;
+                self.build()
+            }
+            _ => self,
+        }
+    }
+
     pub fn build(&mut self) -> &mut Self {
         self.prizes
             .with_items(self.items.iter().map(|(_, item)| item).collect());

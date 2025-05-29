@@ -1,16 +1,16 @@
-use test_gashapon;
+use test_gashapon::{Gashapon, GashaponItem, PrizeItem};
 
 fn main() {
-    let mut gashpon = test_gashapon::Gashapon::new();
+    let mut gashpon = Gashapon::new();
     gashpon.add_items(vec![
-        ("S", 1),
-        ("A", 2),
-        ("B", 3),
-        ("C", 5),
-        ("D", 12),
-        ("E", 15),
-        ("F", 20),
-        ("G", 22),
+        GashaponItem::new(PrizeItem::new("S")).with_quantity(1),
+        GashaponItem::new(PrizeItem::new("A")).with_quantity(2),
+        GashaponItem::new(PrizeItem::new("B")).with_quantity(3),
+        GashaponItem::new(PrizeItem::new("C")).with_quantity(5),
+        GashaponItem::new(PrizeItem::new("D")).with_quantity(12),
+        GashaponItem::new(PrizeItem::new("E")).with_quantity(15),
+        GashaponItem::new(PrizeItem::new("F")).with_quantity(20),
+        GashaponItem::new(PrizeItem::new("G")).with_quantity(22),
     ]);
     gashpon.with_seed(12345).build();
     // Calculate the draw rate of each item
@@ -41,7 +41,7 @@ fn main() {
             gashpon.prizes.get_randomized_items()
         );
         println!("Draw item: {:?}", my_prize);
-
+        println!("Items: {:?}", gashpon.items);
         if gashpon.prizes.idx_box.len() == 0 {
             println!("No more items left to draw.");
             break;
@@ -52,7 +52,11 @@ fn main() {
         "Draw rates (%): {:?}",
         draw_rate
             .iter()
-            .map(|(k, v)| (k.name.clone(), *v))
+            .map(|(k, v)| (k.prize.name.clone(), *v))
             .collect::<Vec<_>>()
     );
+
+    // Restore the items to the original state
+    gashpon.restore_items();
+    println!("Restored items: {:?}", gashpon.items);
 }

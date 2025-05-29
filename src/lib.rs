@@ -185,6 +185,17 @@ impl Prizes {
             .expect("Item already drawn")
     }
 
+    pub fn draw_with_times(&mut self, times: u64) -> Vec<PrizeItem> {
+        let mut drawn_items = Vec::new();
+        (0..(times.min(self.idx_box.len() as u64)))
+            .into_iter()
+            .for_each(|_| {
+                let item = self.draw();
+                drawn_items.push(item);
+            });
+        drawn_items
+    }
+
     pub fn get_item_by_index(&self, index: Option<usize>) -> Option<&PrizeItem> {
         let Some(idx) = index else {
             return None;
@@ -272,6 +283,16 @@ impl Gashapon {
         let item = self.items.get_mut(&prize.get_id()).unwrap();
         item.quantity -= 1;
         prize
+    }
+
+    pub fn draw_with_times(&mut self, times: u64) -> Vec<PrizeItem> {
+        let prizes = self.prizes.draw_with_times(times);
+        for p in &prizes {
+            if let Some(p) = self.items.get_mut(&p.get_id()) {
+                p.quantity -= 1;
+            }
+        }
+        prizes
     }
 
     pub fn calculate_draw_rate(&self) -> Vec<(GashaponItem, f64)> {
@@ -363,5 +384,20 @@ mod tests {
                 .map(|x| x.clone())
                 .any(|(item, rate)| item.quantity > 0 && rate > 0.0)
         );
+    }
+
+    #[test]
+    fn test_gashapon_draw_with_times() {
+        let mut gashapon = Gashapon::default();
+        gashapon.add_items(vec![
+            GashaponItem::new(PrizeItem::new("Item1")).with_quantity(2),
+            GashaponItem::new(PrizeItem::new("Item2")).with_quantity(3),
+        ]);
+        gashapon.with_seed(12345).build();
+
+        let drawn_items = gashapon.draw_with_times(2);
+        assert_eq!(drawn_items.len(), 2);
+        assert!(drawn_items.iter().any(|item| item.name == "Item1"));
+        assert!(drawn_items.iter().any(|item| item.name == "Item2"));
     }
 }

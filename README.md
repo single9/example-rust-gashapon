@@ -1,5 +1,7 @@
 # Test Gashapon
 
+![./screenshots/demo.png](./screenshots/demo.png)
+
 ## Usage
 
 ### Binary

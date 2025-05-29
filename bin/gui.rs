@@ -51,13 +51,15 @@ struct App {
 impl App {
     pub fn view(&self) -> Element<Message> {
         let lock_btn_text = if self.is_locked { "Unlock" } else { "Lock" };
-        let lock_btn = button(lock_btn_text).on_press_maybe(if self.gashapon.items.is_empty() {
-            None
-        } else {
-            Some(Message::LockItems)
-        });
+        let lock_btn = button(lock_btn_text)
+            .style(iced::widget::button::success)
+            .on_press_maybe(if self.gashapon.items.is_empty() {
+                None
+            } else {
+                Some(Message::LockItems)
+            });
         let restore_btn = button("Restore")
-            .style(iced::widget::button::danger)
+            .style(iced::widget::button::secondary)
             .on_press_maybe(if self.is_locked || self.gashapon.items.is_empty() {
                 None
             } else {
@@ -103,7 +105,7 @@ impl App {
                 ]
                 .spacing(10)
                 .padding(padding::all(20)),
-                row![lock_btn, clear_btn, restore_btn]
+                row![lock_btn, restore_btn, clear_btn]
                     .padding(padding::left(20))
                     .align_y(iced::Alignment::End),
                 row![

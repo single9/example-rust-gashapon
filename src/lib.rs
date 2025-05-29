@@ -1,25 +1,92 @@
 mod utils;
 
+use std::collections::HashMap;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::{self, UNIX_EPOCH};
 
 use utils::randomize;
 
-type PrizeCount = u64;
-type GashaponItems = (PrizeItem, PrizeCount);
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PrizeId(u64);
+
+impl PrizeId {
+    pub fn new<T>(name: T) -> Self
+    where
+        T: ToString,
+    {
+        let name = name.to_string();
+        let mut hasher = DefaultHasher::new();
+
+        name.hash(&mut hasher);
+
+        Self(hasher.finish())
+    }
+
+    pub fn get_id(&self) -> u64 {
+        self.0
+    }
+
+    pub fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct GashaponItem {
+    pub prize: PrizeItem,
+    pub quantity: u64,
+    original_quantity: u64,
+}
+
+impl GashaponItem {
+    pub fn new(prize: PrizeItem) -> Self {
+        Self {
+            prize,
+            quantity: u64::default(),
+            original_quantity: u64::default(),
+        }
+    }
+
+    pub fn with_quantity(mut self, quantity: u64) -> Self {
+        self.quantity = quantity;
+        self.original_quantity = quantity;
+        self
+    }
+
+    pub fn get_prize_id(&self) -> PrizeId {
+        self.prize.get_id()
+    }
+
+    pub fn restore(&mut self) {
+        self.quantity = self.original_quantity;
+    }
+}
+
+pub trait GetPrizeItemId {
+    fn get_id(&self) -> PrizeId;
+}
 
 #[derive(Debug, Clone)]
 pub struct PrizeItem {
+    id: PrizeId,
     pub name: String,
 }
 
 impl PrizeItem {
     pub fn new<T>(name: T) -> Self
     where
-        T: ToString,
+        T: ToString + Clone,
     {
         Self {
+            id: PrizeId::new(name.clone()),
             name: name.to_string(),
         }
+    }
+}
+
+impl GetPrizeItemId for PrizeItem {
+    fn get_id(&self) -> PrizeId {
+        self.id.clone()
     }
 }
 
@@ -63,12 +130,12 @@ impl Prizes {
         self.idx_box = randomize(idx_box, &mut seed);
     }
 
-    pub fn with_items(&mut self, items: Vec<GashaponItems>) {
+    pub fn with_items(&mut self, items: Vec<&GashaponItem>) {
         let items = {
             let mut items_vec = Vec::new();
-            for (item, count) in items {
-                for _ in 0..count {
-                    items_vec.push(item.clone());
+            for item in items {
+                for _ in 0..item.quantity {
+                    items_vec.push(item.prize.clone());
                 }
             }
             items_vec
@@ -124,50 +191,41 @@ impl Prizes {
             .collect::<Vec<_>>()
     }
 
-    pub fn count(&self) -> usize {
+    pub fn quantity(&self) -> usize {
         self.items.len()
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Gashapon {
-    pub items: Vec<GashaponItems>,
+    pub items: HashMap<PrizeId, GashaponItem>,
     pub prizes: Prizes,
 }
 
 impl Gashapon {
     pub fn new() -> Self {
         Self {
-            items: Vec::new(),
+            items: HashMap::new(),
             prizes: Prizes::new(),
         }
     }
 
-    pub fn add_item<T>(&mut self, item: T, count: PrizeCount) -> &mut Self
-    where
-        T: ToString,
-    {
-        self.items.push((PrizeItem::new(item), count));
+    pub fn add_item(&mut self, item: GashaponItem) -> &mut Self {
+        self.items.insert(item.get_prize_id(), item);
         self
     }
 
-    pub fn add_items<T>(&mut self, items: Vec<(T, PrizeCount)>) -> &mut Self
-    where
-        T: ToString,
-    {
-        for (item, count) in items {
-            self.items.push((PrizeItem::new(item), count));
+    pub fn add_items(&mut self, items: Vec<GashaponItem>) -> &mut Self {
+        for item in items {
+            self.items.insert(item.get_prize_id(), item);
         }
         self
     }
 
-    pub fn with_items(&mut self, items: Vec<GashaponItems>) -> &mut Self {
-        self.items = items;
-        self
-    }
-
-    pub fn with_prizes(&mut self, prizes: Prizes) -> &mut Self {
-        self.prizes = prizes;
+    pub fn restore_items(&mut self) -> &mut Self {
+        for item in self.items.values_mut() {
+            item.restore();
+        }
         self
     }
 
@@ -177,23 +235,31 @@ impl Gashapon {
     }
 
     pub fn build(&mut self) -> &mut Self {
-        self.prizes.with_items(self.items.clone());
+        self.prizes
+            .with_items(self.items.iter().map(|(_, item)| item).collect());
         self.prizes.build();
         self
     }
 
     pub fn draw(&mut self) -> PrizeItem {
-        self.prizes.draw()
+        let prize = self.prizes.draw();
+        let item = self.items.get_mut(&prize.get_id()).unwrap();
+        item.quantity -= 1;
+        prize
     }
 
-    pub fn calculate_draw_rate(&self) -> Vec<(PrizeItem, f64)> {
+    pub fn calculate_draw_rate(&self) -> Vec<(GashaponItem, f64)> {
         let mut draw_rate = Vec::new();
-        // Calculate the total count of items
-        let total_count = self.items.iter().map(|(_, count)| count).sum::<u64>() as f64;
+        // Calculate the total quantity of items
+        let total_quantity = self
+            .items
+            .iter()
+            .map(|(_, item)| item.quantity)
+            .sum::<u64>() as f64;
         // Calculate the draw rate for each item
         // and store it in the HashMap
-        for (item, count) in self.items.clone().into_iter() {
-            let rate = ((count as f64) / total_count).max(0.0);
+        for (_, item) in self.items.clone().into_iter() {
+            let rate = ((item.quantity as f64) / total_quantity).max(0.0);
             draw_rate.push((item, rate));
         }
         draw_rate
@@ -208,8 +274,8 @@ mod tests {
     fn test_prizes() {
         let mut prizes = Prizes::new();
         prizes.with_items(vec![
-            (PrizeItem::new("Item1"), 2),
-            (PrizeItem::new("Item2"), 3),
+            &GashaponItem::new(PrizeItem::new("Item1")).with_quantity(2),
+            &GashaponItem::new(PrizeItem::new("Item2")).with_quantity(3),
         ]);
         prizes.with_seed(12345);
         prizes.build();
@@ -222,8 +288,8 @@ mod tests {
     fn test_gashapon() {
         let mut gashapon = Gashapon::new();
         gashapon
-            .add_item("Item1", 2)
-            .add_item("Item2", 3)
+            .add_item(GashaponItem::new(PrizeItem::new("Item1")).with_quantity(2))
+            .add_item(GashaponItem::new(PrizeItem::new("Item2")).with_quantity(3))
             .with_seed(12345)
             .build();
 
@@ -234,7 +300,11 @@ mod tests {
     #[test]
     fn test_gashapon_calculate_draw_rate() {
         let mut gashapon = Gashapon::new();
-        gashapon.add_items(vec![("Item1", 2), ("Item2", 3), ("Item3", 5)]);
+        gashapon.add_items(vec![
+            GashaponItem::new(PrizeItem::new("Item1")).with_quantity(2),
+            GashaponItem::new(PrizeItem::new("Item2")).with_quantity(3),
+            GashaponItem::new(PrizeItem::new("Item3")).with_quantity(5),
+        ]);
         gashapon.with_seed(12345).build();
 
         let draw_rate = gashapon.calculate_draw_rate();
@@ -243,7 +313,29 @@ mod tests {
             draw_rate
                 .iter()
                 .map(|x| x.clone())
-                .any(|(item, rate)| item.name == "Item1" && rate > 0.0)
+                .any(|(item, rate)| item.prize.name == "Item1" && rate > 0.0)
+        );
+    }
+
+    #[test]
+    fn test_gashapon_restore_items() {
+        let mut gashapon = Gashapon::new();
+        gashapon.add_items(vec![
+            GashaponItem::new(PrizeItem::new("Item1")).with_quantity(1),
+            GashaponItem::new(PrizeItem::new("Item2")).with_quantity(1),
+        ]);
+        gashapon.with_seed(12345).build();
+
+        let drawn_item = gashapon.draw();
+        assert!(drawn_item.name == "Item1" || drawn_item.name == "Item2");
+
+        gashapon.restore_items();
+        let draw_rate = gashapon.calculate_draw_rate();
+        assert!(
+            draw_rate
+                .iter()
+                .map(|x| x.clone())
+                .any(|(item, rate)| item.quantity > 0 && rate > 0.0)
         );
     }
 }

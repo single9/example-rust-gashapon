@@ -17,3 +17,6 @@ path = "bin/gui.rs"
 
 [dependencies]
 iced = { git = "https://github.com/iced-rs/iced", branch = "master" }
+
+[profile.release]
+opt-level = "s"

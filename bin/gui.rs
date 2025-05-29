@@ -8,7 +8,9 @@ pub enum Message {
     AddNewItemCount(text_editor::Action),
     InesertPrize,
     LockItems,
-    RemovePrize(PrizeId),
+    RemoveItem(PrizeId),
+    IncrementItem(PrizeId),
+    ReduceItem(PrizeId),
     Draw,
     UpdateUnitPrice(String),
     Clear,
@@ -100,19 +102,31 @@ impl App {
                         row![text("Prizes").size(20)].align_y(iced::Alignment::Center),
                         column(self.gashapon.items.values().map(|item| {
                             row![
-                                column![
-                                    button("x")
-                                        .style(button::text)
-                                        .on_press(Message::RemovePrize(item.get_prize_id()))
-                                ],
-                                column![
-                                    text(format!("{}: {}", item.prize.name, item.quantity))
-                                        .shaping(text::Shaping::Advanced)
-                                        .size(20),
+                                row![
+                                    column![
+                                        button("x")
+                                            .style(button::text)
+                                            .on_press(Message::RemoveItem(item.get_prize_id())),
+                                    ]
+                                    .align_x(iced::Alignment::Center)
+                                    .padding(iced::padding::right(10)),
+                                    column![
+                                        text(format!("{}: {}", item.prize.name, item.quantity))
+                                            .shaping(text::Shaping::Advanced)
+                                            .size(20),
+                                    ],
                                 ]
-                                .spacing(10),
+                                .align_y(iced::Alignment::Center),
+                                row![
+                                    button("+")
+                                        .style(button::text)
+                                        .on_press(Message::IncrementItem(item.get_prize_id())),
+                                    button("-")
+                                        .style(button::text)
+                                        .on_press(Message::ReduceItem(item.get_prize_id()))
+                                ]
+                                .align_y(iced::Alignment::Center)
                             ]
-                            .align_y(iced::Alignment::Center)
                             .into()
                         }))
                     ]
@@ -143,7 +157,7 @@ impl App {
                             .map(|s| {
                                 match s {
                                     Some(d) => d.name.to_string(),
-                                    _ => "None".to_string(),
+                                    _ => "-".to_string(),
                                 }
                             })
                             .collect::<Vec<_>>()
@@ -247,7 +261,7 @@ impl App {
                     println!("Items are unlocked");
                 }
             }
-            Message::RemovePrize(id) => {
+            Message::RemoveItem(id) => {
                 if self.is_locked {
                     // Handle locked state
                     println!("Items are locked");
@@ -255,6 +269,31 @@ impl App {
                 }
                 self.gashapon.remove_item(id);
                 self.update_prizes();
+            }
+            Message::IncrementItem(id) => {
+                if self.is_locked {
+                    // Handle locked state
+                    println!("Items are locked");
+                    return;
+                }
+
+                let quantity = self.gashapon.items.get(&id).unwrap().quantity;
+                self.gashapon.update_item_quantity(id, quantity + 1);
+                self.update_prizes();
+            }
+            Message::ReduceItem(id) => {
+                if self.is_locked {
+                    // Handle locked state
+                    println!("Items are locked");
+                    return;
+                }
+
+                let quantity = self.gashapon.items.get(&id).unwrap().quantity;
+
+                if quantity - 1 > 0 {
+                    self.gashapon.update_item_quantity(id, quantity - 1);
+                    self.update_prizes();
+                }
             }
             Message::Draw => {
                 if self.gashapon.prizes.idx_box.len() == 0 {
@@ -289,6 +328,7 @@ impl App {
                 // Reset the unit price
                 self.temp_unit_price = 0;
                 self.unit_price = 0;
+                self.gashapon.items.clear();
             }
             Message::Restore => {
                 self.gashapon.restore_items();

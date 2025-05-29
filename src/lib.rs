@@ -90,7 +90,7 @@ impl GetPrizeItemId for PrizeItem {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Prizes {
     pub items: Vec<PrizeItem>,
     pub idx_box: Vec<usize>,
@@ -202,14 +202,16 @@ pub struct Gashapon {
     pub prizes: Prizes,
 }
 
-impl Gashapon {
-    pub fn new() -> Self {
+impl Default for Gashapon {
+    fn default() -> Self {
         Self {
             items: HashMap::new(),
             prizes: Prizes::new(),
         }
     }
+}
 
+impl Gashapon {
     pub fn add_item(&mut self, item: GashaponItem) -> &mut Self {
         self.items.insert(item.get_prize_id(), item);
         self
@@ -286,7 +288,7 @@ mod tests {
 
     #[test]
     fn test_gashapon() {
-        let mut gashapon = Gashapon::new();
+        let mut gashapon = Gashapon::default();
         gashapon
             .add_item(GashaponItem::new(PrizeItem::new("Item1")).with_quantity(2))
             .add_item(GashaponItem::new(PrizeItem::new("Item2")).with_quantity(3))
@@ -299,7 +301,7 @@ mod tests {
 
     #[test]
     fn test_gashapon_calculate_draw_rate() {
-        let mut gashapon = Gashapon::new();
+        let mut gashapon = Gashapon::default();
         gashapon.add_items(vec![
             GashaponItem::new(PrizeItem::new("Item1")).with_quantity(2),
             GashaponItem::new(PrizeItem::new("Item2")).with_quantity(3),
@@ -319,7 +321,7 @@ mod tests {
 
     #[test]
     fn test_gashapon_restore_items() {
-        let mut gashapon = Gashapon::new();
+        let mut gashapon = Gashapon::default();
         gashapon.add_items(vec![
             GashaponItem::new(PrizeItem::new("Item1")).with_quantity(1),
             GashaponItem::new(PrizeItem::new("Item2")).with_quantity(1),

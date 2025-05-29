@@ -1,7 +1,7 @@
 use test_gashapon::{Gashapon, GashaponItem, PrizeItem};
 
 fn main() {
-    let mut gashpon = Gashapon::new();
+    let mut gashpon = Gashapon::default();
     gashpon.add_items(vec![
         GashaponItem::new(PrizeItem::new("S")).with_quantity(1),
         GashaponItem::new(PrizeItem::new("A")).with_quantity(2),

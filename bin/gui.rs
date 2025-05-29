@@ -12,13 +12,13 @@ pub enum Message {
     Draw,
     UpdateUnitPrice(String),
     Clear,
+    Restore,
 }
 
 #[derive(Debug, Clone)]
 struct Prizes {
     pub temp_prize: text_editor::Content,
     pub temp_count: text_editor::Content,
-    pub items: Vec<PrizeItem>,
     pub draw_rate: Vec<(PrizeItem, f64)>,
     pub drawed_items: Vec<PrizeItem>,
 }
@@ -28,7 +28,6 @@ impl Default for Prizes {
         Self {
             temp_prize: text_editor::Content::new(),
             temp_count: text_editor::Content::new(),
-            items: Vec::new(),
             draw_rate: Vec::new(),
             drawed_items: Vec::new(),
         }
@@ -53,6 +52,13 @@ impl App {
         } else {
             Some(Message::LockItems)
         });
+        let restore_btn = button("Restore")
+            .style(iced::widget::button::danger)
+            .on_press_maybe(if self.is_locked || self.gashapon.items.is_empty() {
+                None
+            } else {
+                Some(Message::Restore)
+            });
         let clear_btn = button("Clear")
             .style(iced::widget::button::danger)
             .on_press_maybe(if self.is_locked || self.gashapon.items.is_empty() {
@@ -86,7 +92,7 @@ impl App {
                 ]
                 .spacing(10)
                 .padding(padding::all(20)),
-                row![lock_btn, clear_btn,]
+                row![lock_btn, clear_btn, restore_btn]
                     .padding(padding::left(20))
                     .align_y(iced::Alignment::End),
                 row![
@@ -248,7 +254,7 @@ impl App {
                     return;
                 }
                 self.gashapon.remove_item(id);
-                self.update_draw_rate();
+                self.update_prizes();
             }
             Message::Draw => {
                 if self.gashapon.prizes.idx_box.len() == 0 {
@@ -258,7 +264,7 @@ impl App {
 
                 let drawed_item = self.gashapon.draw();
                 self.prizes.drawed_items.push(drawed_item.clone());
-                self.update_draw_rate();
+                self.update_prizes();
             }
             Message::UpdateUnitPrice(price) => {
                 // Handle update unit price action here
@@ -274,7 +280,6 @@ impl App {
             }
             Message::Clear => {
                 // Handle clear action here
-                self.prizes.items.clear();
                 self.prizes.drawed_items.clear();
                 self.prizes.temp_prize = text_editor::Content::new();
                 self.prizes.temp_count = text_editor::Content::new();
@@ -284,6 +289,11 @@ impl App {
                 // Reset the unit price
                 self.temp_unit_price = 0;
                 self.unit_price = 0;
+            }
+            Message::Restore => {
+                self.gashapon.restore_items();
+                self.update_prizes();
+                self.prizes.drawed_items.clear();
             }
         }
     }

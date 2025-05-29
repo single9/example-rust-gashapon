@@ -228,7 +228,7 @@ impl Gashapon {
         for item in self.items.values_mut() {
             item.restore();
         }
-        self
+        self.build()
     }
 
     pub fn with_seed(&mut self, seed: usize) -> &mut Self {

@@ -13,6 +13,7 @@ pub enum Message {
     ReduceItem(PrizeId),
     Draw,
     UpdateUnitPrice(String),
+    UpdateDrawTimes(String),
     Clear,
     Restore,
 }
@@ -39,10 +40,12 @@ impl Default for Prizes {
 #[derive(Default)]
 struct App {
     pub temp_unit_price: u64,
+    pub temp_draw_times: String,
     pub unit_price: u64,
     pub total_price_in_pool: u64,
     pub current_cost: u64,
     pub prizes: Prizes,
+    pub draw_times: u64,
     gashapon: Gashapon,
     is_locked: bool,
     prize_pool: Vec<Option<PrizeItem>>,
@@ -206,7 +209,16 @@ impl App {
                     .size(14),
                 ],]
                 .padding(padding::all(20)),
-                row![draw_btn].padding(padding::all(20)),
+                row![
+                    column![
+                        text_input("Number", &self.temp_draw_times)
+                            .width(50)
+                            .on_input(Message::UpdateDrawTimes)
+                    ]
+                    .padding(padding::right(5)),
+                    draw_btn
+                ]
+                .padding(padding::all(20)),
                 row![
                     column![
                         row![text("Add New Prize").size(20),],
@@ -323,8 +335,15 @@ impl App {
                     return;
                 }
 
-                let drawed_item = self.gashapon.draw();
-                self.prizes.drawed_items.push(drawed_item.clone());
+                if self.draw_times > 1 {
+                    self.prizes.drawed_items = [
+                        self.prizes.drawed_items.clone(),
+                        self.gashapon.draw_with_times(self.draw_times),
+                    ]
+                    .concat();
+                } else {
+                    self.prizes.drawed_items.push(self.gashapon.draw().clone());
+                }
             }
             Message::UpdateUnitPrice(price) => {
                 // Handle update unit price action here
@@ -355,6 +374,21 @@ impl App {
             Message::Restore => {
                 self.gashapon.restore_items();
                 self.prizes.drawed_items.clear();
+            }
+            Message::UpdateDrawTimes(times) => {
+                match times.parse::<u64>() {
+                    Ok(t) => {
+                        self.temp_draw_times = t.to_string();
+                        self.draw_times = t;
+                    }
+                    Err(_) => {
+                        // Handle invalid draw times input
+                        println!("Invalid draw times input");
+                        self.temp_draw_times = 1.to_string(); // Reset to default value
+                        self.draw_times = 1; // Reset to default value
+                    }
+                }
+                // This can be used to recalculate draw rates or other logic
             }
         }
 

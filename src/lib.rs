@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::{self, UNIX_EPOCH};
 
-use utils::randomize;
+use utils::{randomize, rng};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PrizeId(u64);
@@ -167,10 +167,19 @@ impl Prizes {
             panic!("No more items to draw!");
         }
 
-        let idx = self.idx_box.pop().unwrap();
+        // random select
+        let mut seed = self.get_seed();
+        let r = if self.idx_box.len() - 1 > 0 {
+            rng(&mut seed) % (self.idx_box.len() - 1)
+        } else {
+            0
+        };
+        let idx = self.idx_box[r];
         let item_idx = self.randomized_items[idx].clone();
 
-        self.randomized_items[idx] = None; // Mark as drawn
+        // Mark as drawn
+        self.randomized_items[idx] = None;
+        self.idx_box.remove(r);
         self.get_item_by_index(item_idx)
             .cloned()
             .expect("Item already drawn")

@@ -384,7 +384,7 @@ impl App {
                     Err(_) => {
                         // Handle invalid draw times input
                         println!("Invalid draw times input");
-                        self.temp_draw_times = 1.to_string(); // Reset to default value
+                        self.temp_draw_times = String::default(); // Reset to default value
                         self.draw_times = 1; // Reset to default value
                     }
                 }

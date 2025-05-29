@@ -176,7 +176,13 @@ impl App {
                     ))
                     .shaping(text::Shaping::Advanced)
                     .size(14),
-                    row![text("Drawed Items:").size(20),],
+                    row![
+                        text(format!(
+                            "Drawed Items: [{}]",
+                            self.prizes.drawed_items.len()
+                        ))
+                        .size(20),
+                    ],
                     text(format!(
                         "{}",
                         self.prizes

@@ -160,7 +160,17 @@ impl App {
                 ]
                 .spacing(10),
                 row![column![
-                    row![text("Pool:").size(20),],
+                    row![
+                        text(format!(
+                            "Pool: [{}]",
+                            self.prize_pool
+                                .iter()
+                                .filter(|x| x.is_some())
+                                .collect::<Vec<_>>()
+                                .len()
+                        ))
+                        .size(20),
+                    ],
                     text(format!(
                         "{}",
                         self.prize_pool

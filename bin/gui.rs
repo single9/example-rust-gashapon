@@ -1,8 +1,6 @@
-use std::time::{self, UNIX_EPOCH};
-
 use iced::widget::{button, column, container, row, scrollable, text, text_editor, text_input};
 use iced::{Element, padding};
-use test_gashapon::Item;
+use test_gashapon::{Gashapon, GashaponItem, PrizeId, PrizeItem};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -10,7 +8,7 @@ pub enum Message {
     AddNewItemCount(text_editor::Action),
     InesertPrize,
     LockItems,
-    RemovePrize(usize),
+    RemovePrize(PrizeId),
     Draw,
     UpdateUnitPrice(String),
     Clear,
@@ -20,9 +18,9 @@ pub enum Message {
 struct Prizes {
     pub temp_prize: text_editor::Content,
     pub temp_count: text_editor::Content,
-    pub items: Vec<Item>,
-    pub draw_rate: Vec<(Item, f64)>,
-    pub drawed_items: Vec<String>,
+    pub items: Vec<PrizeItem>,
+    pub draw_rate: Vec<(PrizeItem, f64)>,
+    pub drawed_items: Vec<PrizeItem>,
 }
 
 impl Default for Prizes {
@@ -42,22 +40,22 @@ struct App {
     pub temp_unit_price: u64,
     pub unit_price: u64,
     pub prizes: Prizes,
+    gashapon: Gashapon,
     is_locked: bool,
-    prize_pool: Vec<String>,
-    idx_box: Vec<usize>,
+    prize_pool: Vec<Option<PrizeItem>>,
 }
 
 impl App {
     pub fn view(&self) -> Element<Message> {
         let lock_btn_text = if self.is_locked { "Unlock" } else { "Lock" };
-        let lock_btn = button(lock_btn_text).on_press_maybe(if self.prizes.items.is_empty() {
+        let lock_btn = button(lock_btn_text).on_press_maybe(if self.gashapon.items.is_empty() {
             None
         } else {
             Some(Message::LockItems)
         });
         let clear_btn = button("Clear")
             .style(iced::widget::button::danger)
-            .on_press_maybe(if self.is_locked || self.prizes.items.is_empty() {
+            .on_press_maybe(if self.is_locked || self.gashapon.items.is_empty() {
                 None
             } else {
                 Some(Message::Clear)
@@ -94,15 +92,15 @@ impl App {
                 row![
                     column![
                         row![text("Prizes").size(20)].align_y(iced::Alignment::Center),
-                        column(self.prizes.items.iter().enumerate().map(|(idx, item)| {
+                        column(self.gashapon.items.values().map(|item| {
                             row![
                                 column![
                                     button("x")
                                         .style(button::text)
-                                        .on_press(Message::RemovePrize(idx))
+                                        .on_press(Message::RemovePrize(item.get_prize_id()))
                                 ],
                                 column![
-                                    text(format!("{}: {}", item.name, item.count))
+                                    text(format!("{}: {}", item.prize.name, item.quantity))
                                         .shaping(text::Shaping::Advanced)
                                         .size(20),
                                 ]
@@ -136,7 +134,12 @@ impl App {
                         "{}",
                         self.prize_pool
                             .iter()
-                            .map(|s| s.to_string())
+                            .map(|s| {
+                                match s {
+                                    Some(d) => d.name.to_string(),
+                                    _ => "None".to_string(),
+                                }
+                            })
                             .collect::<Vec<_>>()
                             .join(", ")
                     ))
@@ -148,7 +151,7 @@ impl App {
                         self.prizes
                             .drawed_items
                             .iter()
-                            .map(|s| s.to_string())
+                            .map(|s| s.name.to_string())
                             .collect::<Vec<_>>()
                             .join(", ")
                     ))
@@ -211,10 +214,12 @@ impl App {
                 };
 
                 // Handle insert prize action here
-                if let Some(count) = self.prizes.temp_count.text().parse::<i64>().ok() {
+                if let Some(count) = self.prizes.temp_count.text().parse::<u64>().ok() {
                     if count > 0 {
-                        let item = Item::new(prize_name, count);
-                        self.prizes.items.push(item);
+                        let item =
+                            GashaponItem::new(PrizeItem::new(prize_name)).with_quantity(count);
+                        self.gashapon.add_item(item);
+                        self.gashapon.build();
                         self.prizes.temp_prize = text_editor::Content::new();
                         self.prizes.temp_count = text_editor::Content::new();
                         // Update the prizes after inserting a new item
@@ -236,39 +241,24 @@ impl App {
                     println!("Items are unlocked");
                 }
             }
-            Message::RemovePrize(idx) => {
+            Message::RemovePrize(id) => {
                 if self.is_locked {
                     // Handle locked state
                     println!("Items are locked");
                     return;
                 }
-                // Handle remove prize action here
-                if idx < self.prizes.items.len() {
-                    self.prizes.items.remove(idx);
-                    // Update the prizes after removing an item
-                    self.update_prizes();
-                }
+                self.gashapon.remove_item(id);
+                self.update_draw_rate();
             }
             Message::Draw => {
-                if self.idx_box.len() == 0 {
+                if self.gashapon.prizes.idx_box.len() == 0 {
                     println!("No more items left to draw.");
                     return;
                 }
 
-                let drawed_item =
-                    test_gashapon::draw_prize_item(&mut self.idx_box, &mut self.prize_pool, None);
+                let drawed_item = self.gashapon.draw();
                 self.prizes.drawed_items.push(drawed_item.clone());
-
-                self.prizes
-                    .items
-                    .iter_mut()
-                    .find(|item| item.name == drawed_item)
-                    .map(|item| item.count -= 1);
-
-                self.prizes.draw_rate = test_gashapon::calculate_draw_rate(&self.prizes.items)
-                    .iter()
-                    .map(|&(i, r)| (i.clone(), r))
-                    .collect::<Vec<_>>();
+                self.update_draw_rate();
             }
             Message::UpdateUnitPrice(price) => {
                 // Handle update unit price action here
@@ -289,7 +279,6 @@ impl App {
                 self.prizes.temp_prize = text_editor::Content::new();
                 self.prizes.temp_count = text_editor::Content::new();
                 self.prize_pool.clear();
-                self.idx_box.clear();
                 self.prizes.draw_rate.clear();
                 self.is_locked = false;
                 // Reset the unit price
@@ -299,52 +288,26 @@ impl App {
         }
     }
 
+    fn update_draw_rate(&mut self) {
+        self.prizes.draw_rate = self
+            .gashapon
+            .calculate_draw_rate()
+            .into_iter()
+            .map(|(i, r)| (i.clone().prize, r))
+            .collect::<Vec<_>>();
+    }
+
     fn update_prizes(&mut self) {
         // Update the prizes here
         // This function can be used to recalculate draw rates or other logic
-        self.prizes.draw_rate = test_gashapon::calculate_draw_rate(&self.prizes.items)
-            .iter()
-            .map(|&(i, r)| (i.clone(), r))
-            .collect::<Vec<_>>();
-
-        let items = {
-            let mut items = Vec::new();
-            for i in self.prizes.items.clone().into_iter() {
-                let item = i.name;
-                let mut item_count = i.count;
-                while item_count > 0 {
-                    items.push(item.to_string());
-                    item_count -= 1;
-                }
-            }
-            items
-        };
-        // Randomly sort the items
-        let random_sort_items = {
-            let mut seed: usize = time::SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_secs() as usize;
-            test_gashapon::random_sort(&items, &mut seed)
-        };
-
-        self.prize_pool = random_sort_items.clone();
-        let count = self.prizes.items.iter().map(|item| item.count).sum::<i64>();
-        let prize_item_count = count as usize;
-
-        let idx_box = {
-            let mut idx_box = Vec::new();
-            for i in 0..prize_item_count {
-                idx_box.push(i);
-            }
-            let mut seed: usize = time::SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_secs() as usize;
-            test_gashapon::random_sort(&idx_box, &mut seed)
-        };
-
-        self.idx_box = idx_box.clone();
+        self.update_draw_rate();
+        self.prize_pool = self
+            .gashapon
+            .prizes
+            .get_randomized_items()
+            .into_iter()
+            .map(|x| x.cloned())
+            .collect();
     }
 }
 

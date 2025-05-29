@@ -236,6 +236,11 @@ impl Gashapon {
         self
     }
 
+    pub fn remove_item(&mut self, id: PrizeId) -> &mut Self {
+        self.items.remove(&id);
+        self
+    }
+
     pub fn build(&mut self) -> &mut Self {
         self.prizes
             .with_items(self.items.iter().map(|(_, item)| item).collect());

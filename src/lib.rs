@@ -168,8 +168,8 @@ impl Prizes {
         }
 
         // random select
-        let mut seed = self.get_seed();
         let r = if self.idx_box.len() - 1 > 0 {
+            let mut seed = self.get_seed();
             rng(&mut seed) % (self.idx_box.len() - 1)
         } else {
             0

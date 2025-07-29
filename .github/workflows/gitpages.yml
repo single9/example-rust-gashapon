@@ -9,10 +9,9 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Create folder
-        shell: bash
-        run: mkdir -p dist
       - name: "Dioxus Deploy"
         uses: DioxusLabs/deploy-action@0.1.2
         with:
-          rootPath: "./gashapon_ui/"
+          outDirectory: target/dx/gashapon_ui/release/web/public/
+          rootPath: gashapon_ui/
+          

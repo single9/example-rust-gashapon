@@ -10,4 +10,4 @@
 
 ### GUI
 
-    cargo run --bin gui
+    dx serve --platform web -p gashapon_ui

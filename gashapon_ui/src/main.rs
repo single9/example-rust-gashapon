@@ -163,6 +163,7 @@ pub fn PrizeList() -> Element {
                 }
                 button {
                     onclick: move |_| {
+                        let mut data = use_context::<Data>();
                         let prize_name = data.prizes.read().temp_prize.clone();
                         let prize_count = data.prizes.read().temp_count.clone();
                         tracing::debug!("Adding prize: {}, Count: {}", prize_name, prize_count);

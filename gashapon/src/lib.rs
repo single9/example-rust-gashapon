@@ -2,7 +2,7 @@ mod utils;
 
 use std::collections::HashMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::time::{self, UNIX_EPOCH};
+use web_time::{self, UNIX_EPOCH};
 
 use utils::{randomize, rng};
 
@@ -150,7 +150,7 @@ impl Prizes {
     /// Get the seed value, or generate a new one based on the current time if not set.
     pub fn get_seed(&self) -> usize {
         self.seed.unwrap_or_else(|| {
-            time::SystemTime::now()
+            web_time::SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_secs() as usize

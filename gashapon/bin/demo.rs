@@ -1,4 +1,4 @@
-use test_gashapon::{Gashapon, GashaponItem, PrizeItem};
+use gashapon::{Gashapon, GashaponItem, PrizeItem};
 
 fn main() {
     let mut gashpon = Gashapon::default();

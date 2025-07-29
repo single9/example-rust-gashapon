@@ -1,22 +1,16 @@
-[package]
-name = "test-gashapon"
-version = "0.1.0"
-edition = "2024"
-
-[[bin]]
-name = "demo"
-test = false
-doc = false
-path = "bin/demo.rs"
-
-[[bin]]
-name = "gui"
-test = false
-doc = false
-path = "bin/gui.rs"
-
-[dependencies]
-iced = { git = "https://github.com/iced-rs/iced", branch = "master" }
+[workspace]
+resolver = "3"
+members = ["gashapon", "gashapon_ui"]
 
 [profile.release]
 opt-level = "s"
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"

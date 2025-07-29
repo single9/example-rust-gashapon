@@ -1,0 +1,13 @@
+[package]
+name = "gashapon"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "demo"
+test = false
+doc = false
+path = "bin/demo.rs"
+
+[dependencies]
+web-time = "1.1.0"

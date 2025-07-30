@@ -1,4 +1,4 @@
-use dioxus::{logger::tracing, prelude::*};
+use dioxus::{html::label, logger::tracing, prelude::*};
 use gashapon::{Gashapon, GashaponItem, PrizeItem};
 
 const MAIN_CSS: Asset = asset!("/assets/main.css");
@@ -142,14 +142,18 @@ pub fn PrizeList() -> Element {
         div { id: "prize-list",
             h2 { "Prizes" }
             div { id: "prize-inputs",
+                label { r#for: "prize-name-input", "Prize Name: " }
                 input {
+                    id: "prize-name-input",
                     placeholder: "Prize Name",
                     value: "{data.prizes.read().temp_prize}",
                     oninput: move |e| {
                         data.prizes.write().temp_prize = e.value();
                     },
                 }
+                label { r#for: "prize-count-input", "Count: " }
                 input {
+                    id: "prize-count-input",
                     r#type: "number",
                     value: "{data.prizes.read().temp_count}",
                     oninput: move |e| {
@@ -178,7 +182,7 @@ pub fn PrizeList() -> Element {
                         }
                         tracing::debug!("Current prize pool: {:?}", data.gashapon.read());
                     },
-                    "Add Prize"
+                    "Add"
                 }
             }
             div { id: "prize-items",
@@ -254,6 +258,7 @@ pub fn DrawButton() -> Element {
     let mut data = use_context::<Data>();
     rsx! {
         button {
+            class: "mr-5",
             onclick: move |_| {
                 if data.gashapon.read().prizes.idx_box.is_empty() {
                     tracing::warn!("No more items left to draw.");
@@ -275,6 +280,7 @@ pub fn RestoreButton() -> Element {
     let mut data = use_context::<Data>();
     rsx! {
         button {
+            class: "mr-5",
             onclick: move |_| {
                 data.gashapon.write().restore_items();
                 data.prizes.write().drawed_items.clear();
@@ -292,6 +298,7 @@ pub fn ClearButton() -> Element {
     let mut data = use_context::<Data>();
     rsx! {
         button {
+            class: "mr-5 btn-error",
             onclick: move |_| {
                 data.gashapon.write().items.clear();
                 data.gashapon.write().prizes.items.clear();

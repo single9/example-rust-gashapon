@@ -25,14 +25,17 @@ body {
     text-align: center;
 }
 
+.mr-5 {
+    margin-right: 5px;
+}
+
 button {
     background-color: #0078d4;
     color: white;
     border: none;
-    padding: 5px 5px;
+    padding: 5px 8px;
     border-radius: 5px;
     cursor: pointer;
-    margin: 5px 5px;
 }
 
 button:hover {
@@ -42,6 +45,32 @@ button:hover {
 button:disabled {
     background-color: #555;
     cursor: not-allowed;
+}
+
+.btn-error {
+    background-color: #d83b01;
+}
+
+#prize-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 300px;
+}
+
+#prize-inputs input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#prize-inputs button {
+    width: 100px;
+}
+
+#content {
+    max-width: 1200px;
+    margin: auto;
 }
 
 #footer {

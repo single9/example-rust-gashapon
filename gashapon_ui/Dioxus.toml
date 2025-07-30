@@ -4,6 +4,7 @@
 
 # HTML title tag content
 title = "gashapon_ui"
+base_path = "example-rust-gashapon"
 
 # include `assets` in web platform
 [web.resource]

@@ -1,4 +1,4 @@
-use dioxus::{html::g::display, logger::tracing, prelude::*};
+use dioxus::{logger::tracing, prelude::*};
 use gashapon::{Gashapon, GashaponItem, PrizeItem};
 
 const MAIN_CSS: Asset = asset!("/assets/main.css");

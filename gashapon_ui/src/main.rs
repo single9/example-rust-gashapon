@@ -229,7 +229,9 @@ pub fn Pool() -> Element {
                     }
                 }
             }
-            span { "Total Items in Pool: {data.gashapon.read().items.len()}" }
+            span {
+                "Total Items in Pool: {data.prize_pool.read().len() - data.prizes.read().drawed_items.len()}"
+            }
             div { id: "show-prize-pool",
                 if display_prize_pool.read().clone() {
                     ul { class: "prize-items",

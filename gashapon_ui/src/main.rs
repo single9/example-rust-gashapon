@@ -1,4 +1,4 @@
-use dioxus::{logger::tracing, prelude::*};
+use dioxus::{html::g::display, logger::tracing, prelude::*};
 use gashapon::{Gashapon, GashaponItem, PrizeItem};
 
 const MAIN_CSS: Asset = asset!("/assets/main.css");
@@ -210,21 +210,43 @@ pub fn PrizeList() -> Element {
 #[component]
 pub fn Pool() -> Element {
     let data = use_context::<Data>();
+    let mut display_prize_pool = use_signal(|| false);
     rsx! {
         div { id: "pool-items",
-            h3 { "Pool" }
-            ul { class: "prize-items",
-                for item in data.prize_pool
-                    .read()
-                    .iter()
-                    .map(|i| match i {
-                        Some(prize) => prize.name.clone(),
-                        None => "-".to_string(),
-                    })
-                    .collect::<Vec<_>>()
-                {
-                    li { "{item}" }
+            h3 {
+                onclick: move |_| {
+                    let x = display_prize_pool.read().clone();
+                    display_prize_pool.set(!x);
+                },
+                "Pool "
+                span {
+                    class: "toggle-icon",
+                    style: "cursor: pointer;font-size: 0.75em;",
+                    if display_prize_pool.read().clone() {
+                        "▲"
+                    } else {
+                        "▼"
+                    }
                 }
+            }
+            span { "Total Items in Pool: {data.gashapon.read().items.len()}" }
+            div { id: "show-prize-pool",
+                if display_prize_pool.read().clone() {
+                    ul { class: "prize-items",
+                        for item in data.prize_pool
+                            .read()
+                            .iter()
+                            .map(|i| match i {
+                                Some(prize) => prize.name.clone(),
+                                None => "-".to_string(),
+                            })
+                            .collect::<Vec<_>>()
+                        {
+                            li { "{item}" }
+                        }
+                    }
+                }
+                hr {}
             }
         }
     }

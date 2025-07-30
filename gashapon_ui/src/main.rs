@@ -124,6 +124,7 @@ pub fn UnitPrice() -> Element {
                 oninput: move |e| {
                     let value = e.value().parse::<u64>().unwrap_or(0);
                     data.unit_price.set(value);
+                    data.update_price();
                     tracing::debug!("Unit price set to: {}", data.unit_price);
                 },
             }

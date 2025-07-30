@@ -80,6 +80,7 @@ fn App() -> Element {
 
     rsx! {
         document::Link { rel: "stylesheet", href: MAIN_CSS }
+        document::Title { "Gashapon Simulator" }
         AppLayout {
             h1 { "Gashapon Simulator" }
             UnitPrice {}

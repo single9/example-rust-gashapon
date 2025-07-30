@@ -99,14 +99,7 @@ pub fn AppLayout(children: Element) -> Element {
             div { id: "header" }
             div { id: "content", {children} }
             footer { id: "footer",
-                p {
-                    "© 2025 Duye Chen"
-                    style {
-                        color: "white",
-                        font_size: "small",
-                        text_align: "center",
-                    }
-                }
+                p { "© 2025 Duye Chen" }
             }
         }
     }

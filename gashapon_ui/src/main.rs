@@ -1,4 +1,4 @@
-use dioxus::{html::label, logger::tracing, prelude::*};
+use dioxus::{logger::tracing, prelude::*};
 use gashapon::{Gashapon, GashaponItem, PrizeItem};
 
 const MAIN_CSS: Asset = asset!("/assets/main.css");
@@ -99,7 +99,14 @@ pub fn AppLayout(children: Element) -> Element {
             div { id: "header" }
             div { id: "content", {children} }
             footer { id: "footer",
-                p { "© 2025 Duye Chen" }
+                p {
+                    "© 2025 Duye Chen "
+                    a { href: "https://github.com/single9/example-rust-gashapon",
+                        "GitHub"
+                    }
+                    " | "
+                    a { href: "https://single9.net", "Website" }
+                }
             }
         }
     }

@@ -78,3 +78,16 @@ button:disabled {
     padding: 10px;
     color: white;
 }
+
+#footer a {
+    color: #0fbad1;
+    text-decoration: none;
+}
+
+#footer a:hover {
+    text-decoration: underline;
+}
+
+#footer a {
+    margin-left: 5px;
+}

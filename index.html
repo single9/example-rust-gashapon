@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>gashapon_ui</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+  <link rel="preload" as="script" href="/example-rust-gashapon/assets/gashapon_ui-37950a42f423a21c.js" crossorigin><link rel="preload" as="fetch" type="application/wasm" href="/example-rust-gashapon/assets/gashapon_ui_bg-f23a816c4ab7f6dd.wasm" crossorigin></head>
+  <body>
+    <div id="main"></div>
+  <script>
+            // We can't use a module script here because we need to start the script immediately when streaming
+            import("/example-rust-gashapon/assets/gashapon_ui-37950a42f423a21c.js").then(
+                ({ default: init }) => {
+                init("/example-rust-gashapon/assets/gashapon_ui_bg-f23a816c4ab7f6dd.wasm").then((wasm) => {
+                    if (wasm.__wbindgen_start == undefined) {
+                    wasm.main();
+                    }
+                });
+                }
+            );
+            </script>
+            
+            </body>
+</html>
